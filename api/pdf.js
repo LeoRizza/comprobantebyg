@@ -6,7 +6,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  const html = req.body.html;
+  const html = req.body.html || req.body;
   if (!html) {
     res.status(400).json({ error: "Falta el campo 'html'" });
     return;
