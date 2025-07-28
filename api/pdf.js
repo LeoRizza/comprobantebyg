@@ -1,10 +1,6 @@
 import puppeteer from "puppeteer";
-import { NextApiRequest, NextApiResponse } from "next";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.status(405).send("Método no permitido");
     return;
@@ -18,7 +14,7 @@ export default async function handler(
 
   try {
     const browser = await puppeteer.launch({
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: ["--no-sandbox", "--disable-setuid-sandbox"]
     });
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "networkidle0" });
