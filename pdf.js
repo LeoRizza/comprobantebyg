@@ -1,11 +1,11 @@
 import express from 'express';
-import { parse } from 'querystring'; 
-import puppeteer from 'puppeteer';
+import { parse } from 'querystring';
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware para parsear JSON y x-www-form-urlencoded
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -33,13 +33,16 @@ app.post('/api/pdf', async (req, res) => {
     console.log("✅ HTML recibido, generando PDF");
 
     const browser = await puppeteer.launch({
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: chromium.args,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
     });
 
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "networkidle0" });
 
-    const pdfBuffer = await page.pdf({ format: "A4" });
+    const pdfBuffer = await page.pdf({ format: 'A4' });
+
     await browser.close();
 
     console.log("✅ PDF generado con éxito");
