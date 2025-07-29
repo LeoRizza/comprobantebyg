@@ -1,9 +1,11 @@
 {
+  "type": "module",
   "dependencies": {
     "express": "^5.1.0",
     "puppeteer": "^24.15.0"
   },
   "scripts": {
+    "postinstall": "puppeteer install",
     "start": "node pdf.js"
   }
 }
