@@ -1,4 +1,4 @@
-import puppeteer from "puppeteer";
+import { parse } from 'querystring';
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -6,7 +6,18 @@ export default async function handler(req, res) {
     return;
   }
 
-  const html = req.body.html || req.body;
+  let html = '';
+  if (req.headers['content-type'] === 'application/x-www-form-urlencoded') {
+    const raw = await new Promise((resolve) => {
+      let data = '';
+      req.on('data', chunk => data += chunk);
+      req.on('end', () => resolve(data));
+    });
+    html = parse(raw).html;
+  } else if (req.headers['content-type'] === 'application/json') {
+    html = req.body.html || req.body;
+  }
+
   if (!html) {
     res.status(400).json({ error: "Falta el campo 'html'" });
     return;
@@ -27,6 +38,6 @@ export default async function handler(req, res) {
     res.setHeader("Content-Disposition", "inline; filename=comprobante.pdf");
     res.send(pdfBuffer);
   } catch (err) {
-    res.status(500).json({ error: "Error al generar el PDF", details: err });
+    res.status(500).json({ error: "Error al generar el PDF", details: err.message });
   }
 }
