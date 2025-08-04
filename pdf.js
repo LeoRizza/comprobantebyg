@@ -1,9 +1,8 @@
-const express = require('express');
-const { Dropbox } = require('dropbox');
-const puppeteer = require('puppeteer-core');
-const chromium = require('@sparticuz/chromium');
-const fetch = require('node-fetch'); // necesario para Dropbox y Airtable
-
+import express from 'express';
+import { Dropbox } from 'dropbox';
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
+import fetch from 'node-fetch'; // sigue siendo necesario así por compatibilidad con Dropbox SDK
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,8 +10,8 @@ const PORT = process.env.PORT || 3000;
 // Variables de entorno necesarias
 const DROPBOX_TOKEN = process.env.DROPBOX_ACCESS_TOKEN;
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
-const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID; // Ej: app123abc456xyz
-const AIRTABLE_TABLE_NAME = 'Ventas'; // Nombre exacto de tu tabla en Airtable
+const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+const AIRTABLE_TABLE_NAME = 'Ventas';
 
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -27,7 +26,7 @@ app.post('/api/pdf', async (req, res) => {
   }
 
   try {
-    // 1. Generar el PDF con Puppeteer
+    // 1. Generar PDF
     console.log("📄 Generando PDF...");
     const browser = await puppeteer.launch({
       args: chromium.args,
@@ -62,8 +61,8 @@ app.post('/api/pdf', async (req, res) => {
 
     console.log("🔗 Link público:", publicUrl);
 
-    // 4. Subir el link a Airtable
-    console.log("📡 Actualizando Airtable...");
+    // 4. Actualizar campo en Airtable
+    console.log("📡 Subiendo a Airtable...");
     const airtableRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}/${recordId}`, {
       method: "PATCH",
       headers: {

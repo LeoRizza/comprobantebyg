@@ -1,11 +1,9 @@
 {
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "express": "^5.1.0",
     "puppeteer-core": "^24.15.0",
-    "@sparticuz/chromium": "^122.0.0",
-    "dropbox": "^11.0.0",
-    "node-fetch": "^3.3.2"
+    "@sparticuz/chromium": "^122.0.0"
   },
   "scripts": {
     "start": "node pdf.js"
