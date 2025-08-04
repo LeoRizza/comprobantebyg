@@ -57,14 +57,11 @@ app.post("/api/pdf", async (req, res) => {
     // === 3. Obtener link de descarga directa ===
     let downloadUrl;
     try {
-      const { result } = await dbx.sharingCreateSharedLinkWithSettings({
-        path: dropboxPath,
-      });
+      const { result } = await dbx.sharingCreateSharedLinkWithSettings({ path: dropboxPath });
       console.log("📦 Dropbox link response:");
       console.log(JSON.stringify(result, null, 2));
-
-      downloadUrl = result.url.replace("?dl=0", "?dl=1"); // descarga directa
-      console.log("🔗 Link generado (descarga directa):", downloadUrl);
+      publicUrl = result.url.replace(/dl=0/, "dl=1");
+      console.log("🔗 URL modificada:", publicUrl);
     } catch (e) {
       if (e?.error?.error?.[".tag"] === "shared_link_already_exists") {
         const { result } = await dbx.sharingListSharedLinks({
@@ -72,8 +69,8 @@ app.post("/api/pdf", async (req, res) => {
           direct_only: true,
         });
         const existingUrl = result.links[0]?.url || "";
-        downloadUrl = existingUrl.replace("?dl=0", "?dl=1");
-        console.log("🔗 Link existente reutilizado:", downloadUrl);
+        publicUrl = existingUrl.replace(/dl=0/, "dl=1");
+        console.log("🔗 Link existente reutilizado:", publicUrl);
       } else {
         console.error("❌ Error al generar link público:", e);
         throw e;
