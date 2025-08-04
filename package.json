@@ -1,9 +1,10 @@
 {
   "type": "module",
   "dependencies": {
+    "@sparticuz/chromium": "^122.0.0",
+    "dropbox": "^10.34.0",
     "express": "^5.1.0",
-    "puppeteer-core": "^24.15.0",
-    "@sparticuz/chromium": "^122.0.0"
+    "puppeteer-core": "^24.15.0"
   },
   "scripts": {
     "start": "node pdf.js"
