@@ -1,8 +1,8 @@
-import express from 'express';
-import { Dropbox } from 'dropbox';
-import puppeteer from 'puppeteer-core';
-import chromium from '@sparticuz/chromium';
-import fetch from 'node-fetch'; // requerido por Dropbox y para el POST a Airtable
+import express from "express";
+import { Dropbox } from "dropbox";
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
+import fetch from "node-fetch"; // requerido por Dropbox y para el POST a Airtable
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,19 +11,21 @@ const PORT = process.env.PORT || 3000;
 const DROPBOX_TOKEN = process.env.DROPBOX_ACCESS_TOKEN;
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
-const AIRTABLE_TABLE_NAME = 'Ventas'; // Asegurate que sea exacto
+const AIRTABLE_TABLE_NAME = "Ventas"; // Asegurate que sea exacto
 
-app.use(express.json({ limit: '5mb' }));
+app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-app.post('/api/pdf', async (req, res) => {
+app.post("/api/pdf", async (req, res) => {
   console.log("➡️ Request recibida");
 
-  const { html, filename = 'comprobante.pdf', recordId } = req.body;
+  const { html, filename = "comprobante.pdf", recordId } = req.body;
 
   if (!html || !recordId) {
     console.error("❗ Faltan campos obligatorios");
-    return res.status(400).json({ error: "Faltan campos obligatorios: 'html' o 'recordId'" });
+    return res
+      .status(400)
+      .json({ error: "Faltan campos obligatorios: 'html' o 'recordId'" });
   }
 
   try {
@@ -37,7 +39,7 @@ app.post('/api/pdf', async (req, res) => {
 
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "networkidle0" });
-    const pdfBuffer = await page.pdf({ format: 'A4' });
+    const pdfBuffer = await page.pdf({ format: "A4" });
     await browser.close();
     console.log("✅ PDF generado correctamente");
 
@@ -49,19 +51,25 @@ app.post('/api/pdf', async (req, res) => {
     await dbx.filesUpload({
       path: dropboxPath,
       contents: pdfBuffer,
-      mode: { ".tag": "overwrite" }
+      mode: { ".tag": "overwrite" },
     });
     console.log("✅ Archivo subido correctamente a Dropbox");
 
     // === 3. Obtener link público ===
     let publicUrl;
     try {
-      const { result } = await dbx.sharingCreateSharedLinkWithSettings({ path: dropboxPath });
-      console.log("🔗 Resultado:", publicUrl);
+      const { result } = await dbx.sharingCreateSharedLinkWithSettings({
+        path: dropboxPath,
+      });
+      console.log(
+        "📦 Dropbox response from sharingCreateSharedLinkWithSettings:"
+      );
+      console.log(JSON.stringify(result, null, 2)); // 🔍 inspecciona todo el objeto
       publicUrl = result.url.replace("?dl=0", "?dl=1");
-      console.log("🔗 Link nuevo creado:", publicUrl);
+      console.log("🔗 URL original:", result.url);
+      console.log("🔗 URL modificada (raw=1):", publicUrl);
     } catch (e) {
-      if (e?.error?.error?.['.tag'] === 'shared_link_already_exists') {
+      if (e?.error?.error?.[".tag"] === "shared_link_already_exists") {
         const { result } = await dbx.sharingListSharedLinks({
           path: dropboxPath,
           direct_only: true,
@@ -76,20 +84,21 @@ app.post('/api/pdf', async (req, res) => {
 
     // === 4. Subir el link a Airtable ===
     console.log("📡 Subiendo a Airtable...");
-    const airtableRes = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}/${recordId}`, {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${AIRTABLE_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        fields: {
-          "Comprobante": [
-            { url: publicUrl }
-          ]
-        }
-      })
-    });
+    const airtableRes = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}/${recordId}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${AIRTABLE_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fields: {
+            Comprobante: [{ url: publicUrl }],
+          },
+        }),
+      }
+    );
 
     if (!airtableRes.ok) {
       const errorText = await airtableRes.text();
@@ -101,9 +110,8 @@ app.post('/api/pdf', async (req, res) => {
     return res.status(200).json({
       success: true,
       url: publicUrl,
-      recordId
+      recordId,
     });
-
   } catch (err) {
     console.error("❌ Error general:", err);
     return res.status(500).json({ error: err.message });
