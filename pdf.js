@@ -57,6 +57,7 @@ app.post('/api/pdf', async (req, res) => {
     let publicUrl;
     try {
       const { result } = await dbx.sharingCreateSharedLinkWithSettings({ path: dropboxPath });
+      console.log("🔗 Resultado:", publicUrl);
       publicUrl = result.url.replace("?dl=0", "?raw=1");
       console.log("🔗 Link nuevo creado:", publicUrl);
     } catch (e) {
