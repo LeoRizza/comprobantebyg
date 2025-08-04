@@ -2,16 +2,15 @@ import express from "express";
 import { Dropbox } from "dropbox";
 import puppeteer from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
-import fetch from "node-fetch"; // requerido por Dropbox y para el POST a Airtable
+import fetch from "node-fetch";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Variables de entorno requeridas
 const DROPBOX_TOKEN = process.env.DROPBOX_ACCESS_TOKEN;
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
-const AIRTABLE_TABLE_NAME = "Ventas"; // Asegurate que sea exacto
+const AIRTABLE_TABLE_NAME = "Ventas";
 
 app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ extended: true }));
@@ -23,9 +22,9 @@ app.post("/api/pdf", async (req, res) => {
 
   if (!html || !recordId) {
     console.error("❗ Faltan campos obligatorios");
-    return res
-      .status(400)
-      .json({ error: "Faltan campos obligatorios: 'html' o 'recordId'" });
+    return res.status(400).json({
+      error: "Faltan campos obligatorios: 'html' o 'recordId'",
+    });
   }
 
   try {
@@ -55,34 +54,33 @@ app.post("/api/pdf", async (req, res) => {
     });
     console.log("✅ Archivo subido correctamente a Dropbox");
 
-    // === 3. Obtener link público ===
-    let publicUrl;
+    // === 3. Obtener link de descarga directa ===
+    let downloadUrl;
     try {
       const { result } = await dbx.sharingCreateSharedLinkWithSettings({
         path: dropboxPath,
       });
-      console.log(
-        "📦 Dropbox response from sharingCreateSharedLinkWithSettings:"
-      );
-      console.log(JSON.stringify(result, null, 2)); // 🔍 inspecciona todo el objeto
-      publicUrl = result.url.replace("?dl=0", "?dl=1");
-      console.log("🔗 URL original:", result.url);
-      console.log("🔗 URL modificada (raw=1):", publicUrl);
+      console.log("📦 Dropbox link response:");
+      console.log(JSON.stringify(result, null, 2));
+
+      downloadUrl = result.url.replace("?dl=0", "?dl=1"); // descarga directa
+      console.log("🔗 Link generado (descarga directa):", downloadUrl);
     } catch (e) {
       if (e?.error?.error?.[".tag"] === "shared_link_already_exists") {
         const { result } = await dbx.sharingListSharedLinks({
           path: dropboxPath,
           direct_only: true,
         });
-        publicUrl = result.links[0]?.url?.replace("?dl=0", "?dl=1");
-        console.log("🔗 Link existente reutilizado:", publicUrl);
+        const existingUrl = result.links[0]?.url || "";
+        downloadUrl = existingUrl.replace("?dl=0", "?dl=1");
+        console.log("🔗 Link existente reutilizado:", downloadUrl);
       } else {
         console.error("❌ Error al generar link público:", e);
         throw e;
       }
     }
 
-    // === 4. Subir el link a Airtable ===
+    // === 4. Subir a Airtable ===
     console.log("📡 Subiendo a Airtable...");
     const airtableRes = await fetch(
       `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}/${recordId}`,
@@ -94,7 +92,11 @@ app.post("/api/pdf", async (req, res) => {
         },
         body: JSON.stringify({
           fields: {
-            Comprobante: [{ url: publicUrl }],
+            Comprobante: [
+              {
+                url: downloadUrl,
+              },
+            ],
           },
         }),
       }
@@ -109,7 +111,7 @@ app.post("/api/pdf", async (req, res) => {
     console.log("✅ Comprobante actualizado en Airtable");
     return res.status(200).json({
       success: true,
-      url: publicUrl,
+      url: downloadUrl,
       recordId,
     });
   } catch (err) {
