@@ -58,7 +58,7 @@ app.post('/api/pdf', async (req, res) => {
     try {
       const { result } = await dbx.sharingCreateSharedLinkWithSettings({ path: dropboxPath });
       console.log("🔗 Resultado:", publicUrl);
-      publicUrl = result.url.replace("?dl=0", "?raw=1");
+      publicUrl = result.url.replace("?dl=0", "?dl=1");
       console.log("🔗 Link nuevo creado:", publicUrl);
     } catch (e) {
       if (e?.error?.error?.['.tag'] === 'shared_link_already_exists') {
@@ -66,7 +66,7 @@ app.post('/api/pdf', async (req, res) => {
           path: dropboxPath,
           direct_only: true,
         });
-        publicUrl = result.links[0]?.url?.replace("?dl=0", "?raw=1");
+        publicUrl = result.links[0]?.url?.replace("?dl=0", "?dl=1");
         console.log("🔗 Link existente reutilizado:", publicUrl);
       } else {
         console.error("❌ Error al generar link público:", e);
