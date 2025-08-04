@@ -43,7 +43,7 @@ app.post('/api/pdf', async (req, res) => {
 
     // === 2. Subir a Dropbox ===
     const dbx = new Dropbox({ accessToken: DROPBOX_TOKEN, fetch });
-    const dropboxPath = `/pdfs/${filename}`;
+    const dropboxPath = `/ComprobanteByG/${filename}`;
     console.log("📤 Subiendo a Dropbox...");
 
     await dbx.filesUpload({
