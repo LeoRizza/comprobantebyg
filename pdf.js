@@ -8,7 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Variables de entorno necesarias
-const DROPBOX_ACCESS_TOKEN = process.env.DROPBOX_ACCESS_TOKEN;
+const DROPBOX_TOKEN = process.env.DROPBOX_ACCESS_TOKEN;
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID; // Ej: app123abc456xyz
 const AIRTABLE_TABLE_NAME = 'Ventas'; // Nombre exacto de tu tabla en Airtable
@@ -40,7 +40,7 @@ app.post('/api/pdf', async (req, res) => {
     await browser.close();
 
     // 2. Subir a Dropbox
-    const dbx = new Dropbox({ accessToken: DROPBOX_ACCESS_TOKEN, fetch });
+    const dbx = new Dropbox({ accessToken: DROPBOX_TOKEN, fetch });
     const dropboxPath = `/pdfs/${filename}`;
     console.log("📤 Subiendo a Dropbox...");
     await dbx.filesUpload({ path: dropboxPath, contents: pdfBuffer, mode: { ".tag": "overwrite" } });
