@@ -1,8 +1,9 @@
-import express from 'express';
-import { Dropbox } from 'dropbox';
-import puppeteer from 'puppeteer-core';
-import chromium from '@sparticuz/chromium';
-import fetch from 'node-fetch'; // necesario para Dropbox y Airtable
+const express = require('express');
+const { Dropbox } = require('dropbox');
+const puppeteer = require('puppeteer-core');
+const chromium = require('@sparticuz/chromium');
+const fetch = require('node-fetch'); // necesario para Dropbox y Airtable
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
