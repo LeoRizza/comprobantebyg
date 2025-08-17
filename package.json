@@ -2,6 +2,7 @@
   "type": "module",
   "dependencies": {
     "@sparticuz/chromium": "^122.0.0",
+    "dotenv": "^17.2.1",
     "dropbox": "^10.34.0",
     "express": "^5.1.0",
     "puppeteer-core": "^24.15.0"
